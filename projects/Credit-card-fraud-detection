@@ -1,0 +1,75 @@
+# main.py
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Loading the dataset to a Pandas DataFrame
+credit_card_data = pd.read_csv('creditcard.csv')
+
+# Display dataset information
+print(credit_card_data.head())
+print(credit_card_data.tail())
+print(credit_card_data.info())
+print(credit_card_data.isnull().sum())
+
+# Handling missing values (if any)
+credit_card_data['Amount'].fillna(credit_card_data['Amount'].median(), inplace=True)
+
+# Plotting distribution of the 'Amount' column
+fig, ax = plt.subplots(figsize=(8, 8))
+sns.displot(credit_card_data.Amount)
+plt.show()
+
+# Distribution of legit and fraud transactions
+print(credit_card_data['Class'].value_counts())
+
+# Separating legit and fraud transactions
+legit = credit_card_data[credit_card_data.Class == 0]
+fraud = credit_card_data[credit_card_data.Class == 1]
+
+print(legit.shape)
+print(fraud.shape)
+
+# Statistical measures
+print(legit.Amount.describe())
+print(fraud.Amount.describe())
+
+# Compare the values for both transactions
+print(credit_card_data.groupby('Class').mean())
+
+# Under-sampling
+legit_sample = legit.sample(n=2)
+new_dataset = pd.concat([legit_sample, fraud], axis=0)
+
+print(new_dataset.head())
+print(new_dataset.tail())
+print(new_dataset['Class'].value_counts())
+print(new_dataset.groupby('Class').mean())
+
+# Splitting the data into features and target
+X = new_dataset.drop(columns='Class', axis=1)
+Y = new_dataset['Class']
+
+print(X)
+print(Y)
+
+# Splitting the data into training and testing data
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, stratify=Y, random_state=2)
+
+# Model Training
+model = LogisticRegression()
+model.fit(X_train, Y_train)
+
+# Model Evaluation
+X_train_prediction = model.predict(X_train)
+train_data_accuracy = accuracy_score(X_train_prediction, Y_train)
+print('Accuracy on Training data: ', train_data_accuracy)
+
+X_test_prediction = model.predict(X_test)
+test_data_accuracy = accuracy_score(X_test_prediction, Y_test)
+print('Accuracy score on Test Data: ', test_data_accuracy)
